@@ -1,0 +1,41 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <AssemblyName>RepairHammer</AssemblyName>
+    <RootNamespace>RepairHammer</RootNamespace>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <GamePath>/game</GamePath>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="MelonLoader"><HintPath>$(GamePath)/MelonLoader/net35/MelonLoader.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="0Harmony"><HintPath>$(GamePath)/MelonLoader/net35/0Harmony.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Root.Township"><HintPath>$(GamePath)/A Township Tale_Data/Managed/Root.Township.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Alta.Values"><HintPath>$(GamePath)/A Township Tale_Data/Managed/Alta.Values.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.CoreModule"><HintPath>$(GamePath)/A Township Tale_Data/Managed/UnityEngine.CoreModule.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.PhysicsModule"><HintPath>$(GamePath)/A Township Tale_Data/Managed/UnityEngine.PhysicsModule.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.ParticleSystemModule"><HintPath>$(GamePath)/A Township Tale_Data/Managed/UnityEngine.ParticleSystemModule.dll</HintPath><Private>false</Private></Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../CustomRecipesAPI/CustomRecipesAPI.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Core.cs" />
+    <Compile Include="ForgeMultiplierPolicy.cs" />
+    <Compile Include="ForgeableMaterialProfiles.cs" />
+    <Compile Include="MaterialRepairProfile.cs" />
+    <Compile Include="RepairAlloyMaterialRegistration.cs" />
+    <Compile Include="RepairAlloyPolicy.cs" />
+    <Compile Include="RepairAlloyRecipeRegistration.cs" />
+    <Compile Include="RepairAlloySmelterPatch.cs" />
+    <Compile Include="RepairAlloySmelterRuntimePatch.cs" />
+    <Compile Include="RepairGlowPolicy.cs" />
+    <Compile Include="RepairHammerIdentity.cs" />
+    <Compile Include="RepairHammerGlowPatch.cs" />
+    <Compile Include="RepairPolicy.cs" />
+    <Compile Include="PatchTargetResolver.cs" />
+    <Compile Include="RepairStrikePatch.cs" />
+  </ItemGroup>
+</Project>

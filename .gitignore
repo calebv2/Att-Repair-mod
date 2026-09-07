@@ -1,0 +1,14 @@
+# Build output and generated intermediates
+bin/
+obj/
+tests/bin/
+tests/obj/
+diagnostics/
+
+# Internal planning records and empty legacy asset directory
+docs/superpowers/
+AssetBundles/
+
+# Never commit compiled mod/debug artifacts
+*.dll
+*.pdb
