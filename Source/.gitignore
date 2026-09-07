@@ -9,6 +9,6 @@ diagnostics/
 docs/superpowers/
 AssetBundles/
 
-# Never commit compiled mod/debug artifacts
+# Never commit compiled/debug artifacts from Source
 *.dll
 *.pdb
