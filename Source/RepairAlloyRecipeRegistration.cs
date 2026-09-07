@@ -37,7 +37,7 @@ public static class RepairAlloyRecipeRegistration
             var recipe = CreateRuntimeRecipeClone();
             ValidateRuntimeRecipe(recipe);
 
-            CustomRecipesAPI.Core.SetUpSmeltingRecipe(
+            SetUpSmeltingRecipe(
                 recipe,
                 new[]
                 {
@@ -79,10 +79,7 @@ public static class RepairAlloyRecipeRegistration
     private static Item FindAndAllowSmelterInput(uint hash, string itemName)
     {
         var item = FindItem(hash, itemName);
-        if (!CustomRecipesAPI.Core.itemsToAddToSmelter.Contains(item))
-        {
-            CustomRecipesAPI.Core.itemsToAddToSmelter.Add(item);
-        }
+        RepairAlloySmelterInputFilter.Allow(item);
 
         return item;
     }
@@ -253,6 +250,39 @@ public static class RepairAlloyRecipeRegistration
         }
 
         field.SetValue(itemCounts[index], count);
+    }
+
+    private static void SetUpSmeltingRecipe(SmeltingRecipe recipe, Item[] inputs, Item[] outputs)
+    {
+        var recipeInputs = ReadItemCounts(recipe, "input");
+        var recipeOutputs = ReadItemCounts(recipe, "output");
+        for (var index = 0; index < recipeInputs.Length; index++)
+        {
+            SetItem(recipeInputs, index, inputs[index]);
+        }
+
+        for (var index = 0; index < recipeOutputs.Length; index++)
+        {
+            SetItem(recipeOutputs, index, outputs[index]);
+        }
+
+        GetRecipeRegistry().Add(recipe.Hash, recipe);
+    }
+
+    private static void SetItem(ItemCount[] itemCounts, int index, Item item)
+    {
+        if (index >= itemCounts.Length)
+        {
+            throw new IndexOutOfRangeException("The runtime recipe template did not retain item slot " + index + ".");
+        }
+
+        var field = typeof(ItemCount).GetField("item", BindingFlags.Instance | BindingFlags.NonPublic);
+        if (field == null || !typeof(Item).IsAssignableFrom(field.FieldType))
+        {
+            throw new MissingFieldException(typeof(ItemCount).FullName, "item (expected the serialized Item field)");
+        }
+
+        field.SetValue(itemCounts[index], item);
     }
 
     private static Dictionary<uint, SmeltingRecipe> GetRecipeRegistry()

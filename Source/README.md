@@ -31,10 +31,11 @@ Current values reported by this game version at server startup:
 
 ## Installation
 
-Build the mod with the game assemblies for the target A Township Tale version. Install all of the following on the server and on every client:
+Build the mod with the game assemblies for the target A Township Tale version. Install the following on the server and on every client:
 
 - `RepairHammer.dll`
-- `CustomRecipesAPI.dll`
+
+`RepairHammer.dll` is self-contained: it includes the limited custom-recipe registration and smelter-filter behavior required for this mod. `CustomRecipesAPI.dll` is not required for Repair Hammer. Keep CustomRecipesAPI installed only if another mod on the same server or client needs it.
 
 No Unity project, AssetBundle, custom mould, alloy ingot, model, texture, or colour asset is required. At startup the mod clones the vanilla Iron `PhysicalMaterial` and a compatible vanilla two-input/one-output `SmeltingRecipe`, assigns stable hashes, registers both through the normal game/API registries, and adds Crystal Gem Blue to the smelter's accepted-item filter. Do not create a new mould, alloy ingot, or general-purpose alloy recipe.
 

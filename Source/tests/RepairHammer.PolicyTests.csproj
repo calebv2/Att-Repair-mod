@@ -13,5 +13,6 @@
     <Compile Include="../RepairGlowPolicy.cs" Link="RepairGlowPolicy.cs" />
     <Compile Include="../ForgeMultiplierPolicy.cs" Link="ForgeMultiplierPolicy.cs" />
     <Compile Include="../RepairPolicy.cs" Link="RepairPolicy.cs" />
+    <Compile Include="../SmelterInputFilterPolicy.cs" Link="SmelterInputFilterPolicy.cs" />
   </ItemGroup>
 </Project>

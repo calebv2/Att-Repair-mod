@@ -60,6 +60,10 @@ internal static class Program
             "Positive forge multipliers must be included in the startup report.");
         Assert(!ForgeMultiplierPolicy.ShouldReport(0f),
             "Zero forge multipliers must be excluded from the startup report.");
+        Assert(SmelterInputFilterPolicy.ShouldAddItem(new uint[] { 17090u }, 45754u),
+            "Crystal Gem Blue must be added when the smelter input filter does not already contain it.");
+        Assert(!SmelterInputFilterPolicy.ShouldAddItem(new uint[] { 17090u, 45754u }, 45754u),
+            "Crystal Gem Blue must not be added twice to the smelter input filter.");
 
         Console.WriteLine("PASS: repair hammer crystal-gem recipe policy.");
     }

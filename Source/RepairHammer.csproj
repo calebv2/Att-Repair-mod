@@ -19,9 +19,6 @@
     <Reference Include="UnityEngine.ParticleSystemModule"><HintPath>$(GamePath)/A Township Tale_Data/Managed/UnityEngine.ParticleSystemModule.dll</HintPath><Private>false</Private></Reference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="../CustomRecipesAPI/CustomRecipesAPI.csproj" />
-  </ItemGroup>
-  <ItemGroup>
     <Compile Include="Core.cs" />
     <Compile Include="ForgeMultiplierPolicy.cs" />
     <Compile Include="ForgeableMaterialProfiles.cs" />
@@ -31,11 +28,13 @@
     <Compile Include="RepairAlloyRecipeRegistration.cs" />
     <Compile Include="RepairAlloySmelterPatch.cs" />
     <Compile Include="RepairAlloySmelterRuntimePatch.cs" />
+    <Compile Include="RepairAlloySmelterInputFilter.cs" />
     <Compile Include="RepairGlowPolicy.cs" />
     <Compile Include="RepairHammerIdentity.cs" />
     <Compile Include="RepairHammerGlowPatch.cs" />
     <Compile Include="RepairPolicy.cs" />
     <Compile Include="PatchTargetResolver.cs" />
     <Compile Include="RepairStrikePatch.cs" />
+    <Compile Include="SmelterInputFilterPolicy.cs" />
   </ItemGroup>
 </Project>
