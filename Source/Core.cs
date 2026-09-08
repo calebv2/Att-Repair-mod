@@ -1,6 +1,6 @@
 using MelonLoader;
 
-[assembly: MelonInfo(typeof(RepairHammer.Core), "Repair Hammer", "0.1.0", "ATT", null)]
+[assembly: MelonInfo(typeof(RepairHammer.Core), "Crystal Repair Hammer", "1.0", "ATT", null)]
 [assembly: MelonGame("Alta", "A Township Tale")]
 
 namespace RepairHammer;
