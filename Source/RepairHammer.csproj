@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
-    <AssemblyName>RepairHammer</AssemblyName>
+    <AssemblyName>CrystalRepairHammer</AssemblyName>
     <RootNamespace>RepairHammer</RootNamespace>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
@@ -24,6 +24,7 @@
     <Compile Include="ForgeableMaterialProfiles.cs" />
     <Compile Include="MaterialRepairProfile.cs" />
     <Compile Include="RepairAlloyMaterialRegistration.cs" />
+    <Compile Include="RepairAlloyAppearancePolicy.cs" />
     <Compile Include="RepairAlloyPolicy.cs" />
     <Compile Include="RepairAlloyRecipeRegistration.cs" />
     <Compile Include="RepairAlloySmelterPatch.cs" />
@@ -32,6 +33,7 @@
     <Compile Include="RepairGlowPolicy.cs" />
     <Compile Include="RepairHammerIdentity.cs" />
     <Compile Include="RepairHammerGlowPatch.cs" />
+    <Compile Include="RepairHammerHeatedMaterialPatch.cs" />
     <Compile Include="RepairPolicy.cs" />
     <Compile Include="PatchTargetResolver.cs" />
     <Compile Include="RepairStrikePatch.cs" />

@@ -1,8 +1,18 @@
-# Repair Hammer
+# Crystal Repair Hammer
 
-Each Repair Alloy Hammer Head Small consumes 15 Crystal Gem Blue (item hash 45754) and 5 Gold ingots in the vanilla Small Hammer Mould. Larger stacks are processed one recipe at a time. Crystal Gem Blue is explicitly accepted by the smelter input filter. Attach that head to a normal handle to use it as the repair hammer. Its registered Repair Alloy physical-material identity makes it a repair hammer after saving or reconnecting.
+The mod is named **Crystal Repair Hammer**. Its DLL filename is `CrystalRepairHammer.dll`.
 
-A Repair Alloy Hammer Head Small repairs a hot, completed, damaged forged item resting on an anvil once attached to a handle. Ordinary Crystal Gem Blue and Gold hammer heads do not repair items.
+Each Crystal Repair Alloy Hammer Head Small consumes 15 Crystal Gem Blue and 5 Gold ingots in the vanilla Small Hammer Mould. Larger stacks are processed one recipe at a time.
+
+Crystal Gem Blue is explicitly accepted by the smelter input filter. Attach that head to a normal handle to use it as the Crystal Repair Hammer. Its registered Repair Alloy physical-material identity makes it a repair hammer after saving or reconnecting.
+
+A Crystal Repair Alloy Hammer Head Small repairs a hot, completed, damaged forged item resting on an anvil.
+
+Ordinary Crystal Gem Blue and Gold hammer heads do not repair items.
+
+## Appearance
+
+The Crystal Repair Alloy head uses the game's heated-metal material effect at full intensity, giving it a permanent heated appearance without changing its actual temperature, melting behavior, or repair gameplay. This visual effect is client-side; players need the current `CrystalRepairHammer.dll` to see it.
 
 ## Forge-based repair balance
 
@@ -33,6 +43,6 @@ Current values reported by this game version at server startup:
 
 Build the mod with the game assemblies for the target A Township Tale version. Install the following on the server and on every client:
 
-- `RepairHammer.dll`
+- `CrystalRepairHammer.dll`
 
-`RepairHammer.dll` is self-contained: it includes the limited custom-recipe registration and smelter-filter behavior required for this mod. `CustomRecipesAPI.dll` is not required for Repair Hammer. Keep CustomRecipesAPI installed only if another mod on the same server or client needs it.
+`CrystalRepairHammer.dll` is self-contained: it includes the limited custom-recipe registration and smelter-filter behavior required for this mod. `CustomRecipesAPI.dll` is not required for Crystal Repair Hammer. Keep CustomRecipesAPI installed only if another mod on the same server or client needs it.

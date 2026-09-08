@@ -26,9 +26,9 @@ jobs:
       - name: Check out release source
         uses: actions/checkout@v4
 
-      - name: Create release and attach RepairHammer.dll
+      - name: Create release and attach CrystalRepairHammer.dll
         run: |
-          gh release create "$RELEASE_TAG" "Repair Hammer Build/RepairHammer.dll" \
+          gh release create "$RELEASE_TAG" "Repair Hammer Build/CrystalRepairHammer.dll" \
             --target "$GITHUB_SHA" \
             --title "Repair Hammer $RELEASE_TAG" \
             --generate-notes

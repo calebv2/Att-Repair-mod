@@ -9,15 +9,15 @@ namespace RepairHammer;
 
 public static class RepairAlloyMaterialRegistration
 {
-    private const string NormalHammerAppearanceMaterialName = "Iron";
     private const string RepairAlloyMaterialName = "Repair Alloy";
+    private static readonly MethodInfo MemberwiseCloneMethod = typeof(object).GetMethod("MemberwiseClone", BindingFlags.Instance | BindingFlags.NonPublic)
+        ?? throw new MissingMethodException(typeof(object).FullName, "MemberwiseClone");
 
     public static PhysicalMaterial? RepairAlloy { get; private set; }
 
     /// <summary>
-    /// Clones the vanilla Iron physical material at runtime. The clone retains
-    /// Iron's renderer/material configuration while receiving a separate,
-    /// persistent Repair Alloy identity.
+    /// Clones the vanilla Iron physical material at runtime, then replaces its
+    /// shared renderer materials with Repair-Alloy-only ice-blue copies.
     /// </summary>
     public static PhysicalMaterial CreateAndRegisterRuntimeClone()
     {
@@ -28,19 +28,119 @@ public static class RepairAlloyMaterialRegistration
 
         PhysicalMaterial.CheckItems();
         var template = PhysicalMaterial.All.FirstOrDefault(
-            material => string.Equals(material.name, NormalHammerAppearanceMaterialName, StringComparison.Ordinal));
+            material => RepairAlloyAppearancePolicy.IsExpectedTemplateMaterial(material.name));
         if (template == null)
         {
             throw new InvalidOperationException(
-                "Repair Alloy cannot be created because the vanilla '" + NormalHammerAppearanceMaterialName
+                "Repair Alloy cannot be created because the vanilla '" + RepairAlloyAppearancePolicy.TemplateMaterialName
                 + "' PhysicalMaterial template is unavailable in this game version.");
         }
 
         var repairAlloy = UnityEngine.Object.Instantiate(template);
         repairAlloy.name = RepairAlloyMaterialName;
+        CloneAndConfigureAppearanceMaterials(repairAlloy);
         AssignStableHash(repairAlloy, RepairAlloyPolicy.RepairAlloyMaterialHash, RepairAlloyMaterialName);
         Register(repairAlloy);
         return repairAlloy;
+    }
+
+    private static void CloneAndConfigureAppearanceMaterials(PhysicalMaterial material)
+    {
+        var materialClones = new Dictionary<Material, Material>();
+        foreach (var field in typeof(PhysicalMaterial).GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
+        {
+            if (field.FieldType == typeof(Material) && field.GetValue(material) is Material sourceMaterial)
+            {
+                field.SetValue(material, GetOrCreateMaterialClone(sourceMaterial, materialClones));
+            }
+        }
+
+        var channelsField = typeof(PhysicalMaterial).GetField("materialChannels", BindingFlags.Instance | BindingFlags.NonPublic)
+            ?? throw new MissingFieldException(typeof(PhysicalMaterial).FullName, "materialChannels");
+        if (channelsField.GetValue(material) is not Array channels)
+        {
+            throw new InvalidOperationException("Repair Alloy requires PhysicalMaterial.materialChannels to be an array.");
+        }
+
+        var clonedChannels = Array.CreateInstance(channels.GetType().GetElementType() ?? throw new InvalidOperationException("Repair Alloy material channel element type is unavailable."), channels.Length);
+        for (var index = 0; index < channels.Length; index++)
+        {
+            var channel = channels.GetValue(index);
+            if (channel == null)
+            {
+                continue;
+            }
+
+            var clonedChannel = MemberwiseCloneMethod.Invoke(channel, null)
+                ?? throw new InvalidOperationException("Repair Alloy failed to clone an Iron material channel.");
+            foreach (var field in channel.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
+            {
+                if (field.FieldType == typeof(Material) && field.GetValue(clonedChannel) is Material sourceMaterial)
+                {
+                    field.SetValue(clonedChannel, GetOrCreateMaterialClone(sourceMaterial, materialClones));
+                }
+            }
+
+            clonedChannels.SetValue(clonedChannel, index);
+        }
+
+        channelsField.SetValue(material, clonedChannels);
+        Core.Logger.Msg("Repair Alloy appearance: template='Iron', clonedMaterials=" + materialClones.Count + ", tint=ice-blue, emission=ice-blue.");
+    }
+
+    private static Material GetOrCreateMaterialClone(Material sourceMaterial, Dictionary<Material, Material> materialClones)
+    {
+        if (materialClones.TryGetValue(sourceMaterial, out var existingClone))
+        {
+            return existingClone;
+        }
+
+        var clone = new Material(sourceMaterial)
+        {
+            name = "Repair Alloy Ice " + sourceMaterial.name
+        };
+        var iceTint = new Color(
+            RepairAlloyAppearancePolicy.IceTintRed,
+            RepairAlloyAppearancePolicy.IceTintGreen,
+            RepairAlloyAppearancePolicy.IceTintBlue,
+            RepairAlloyAppearancePolicy.IceTintAlpha);
+        var iceEmission = new Color(
+            RepairAlloyAppearancePolicy.IceEmissionRed,
+            RepairAlloyAppearancePolicy.IceEmissionGreen,
+            RepairAlloyAppearancePolicy.IceEmissionBlue,
+            1f);
+        foreach (var propertyName in new[] { "_ColorA", "_ColorB", "_Color" })
+        {
+            if (RepairAlloyAppearancePolicy.ShouldTintShaderProperty(propertyName) && clone.HasProperty(propertyName))
+            {
+                clone.SetColor(propertyName, iceTint);
+            }
+        }
+
+        foreach (var propertyName in new[] { "_Emission", "_EmissionColor" })
+        {
+            if (RepairAlloyAppearancePolicy.ShouldSetEmissionShaderProperty(propertyName) && clone.HasProperty(propertyName))
+            {
+                clone.EnableKeyword("_EMISSION");
+                clone.SetColor(propertyName, iceEmission);
+            }
+        }
+
+        foreach (var propertyName in new[] { "_MetallicStrength", "_Glossiness" })
+        {
+            if (!RepairAlloyAppearancePolicy.ShouldInspectSurfaceShaderProperty(propertyName))
+            {
+                continue;
+            }
+
+            var status = clone.HasProperty(propertyName)
+                ? "available, value=" + clone.GetFloat(propertyName).ToString("0.###", System.Globalization.CultureInfo.InvariantCulture)
+                : "unavailable";
+            Core.Logger.Msg("Repair Alloy shader diagnostic: material='" + sourceMaterial.name + "', property='" + propertyName + "', " + status + ".");
+        }
+
+        materialClones.Add(sourceMaterial, clone);
+        return clone;
     }
 
     public static void Register(PhysicalMaterial material)

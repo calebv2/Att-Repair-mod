@@ -44,18 +44,62 @@ internal static class Program
         Assert(RepairGlowPolicy.ShouldApply(isClient: true, isRepairAlloy: true), "Repair Alloy must receive the client-side glow.");
         Assert(!RepairGlowPolicy.ShouldApply(isClient: false, isRepairAlloy: true), "Dedicated servers must not create visual glow objects.");
         Assert(!RepairGlowPolicy.ShouldApply(isClient: true, isRepairAlloy: false), "Ordinary hammer heads must not glow.");
-        Assert(RepairGlowPolicy.HaloParticleLifetimeSeconds > 0f,
-            "The Repair Alloy aura particles must have a visible lifetime.");
-        Assert(RepairGlowPolicy.HaloParticleSize > 0f,
-            "The Repair Alloy aura particles must have a visible size.");
-        Assert(RepairGlowPolicy.HaloParticleSize <= 0.06f,
-            "The Repair Alloy aura must remain smaller than the previous oversized effect.");
-        Assert(RepairGlowPolicy.HaloParticlePulseMaximumScale > RepairGlowPolicy.HaloParticlePulseMinimumScale,
-            "The Repair Alloy aura must pulse between two distinct sizes.");
-        Assert(RepairGlowPolicy.HaloShaderName == "Legacy Shaders/Particles/Additive",
-            "The Repair Alloy aura must use the game's shipped additive particle shader.");
-        Assert(RepairGlowPolicy.HaloTextureResolution >= 16,
-            "The Repair Alloy halo must use a sufficiently smooth radial texture.");
+        Assert(!RepairGlowPolicy.ShouldCreateParticleAura(),
+            "Repair Alloy must not create a particle aura on the hammer head.");
+        Assert(RepairGlowPolicy.ShouldForceHeatedMaterialTemperature(isClient: true, isRepairAlloy: true),
+            "Repair Alloy must use the game's heated-material path on clients.");
+        Assert(!RepairGlowPolicy.ShouldForceHeatedMaterialTemperature(isClient: false, isRepairAlloy: true),
+            "Dedicated servers must not force heated-material visuals.");
+        Assert(!RepairGlowPolicy.ShouldForceHeatedMaterialTemperature(isClient: true, isRepairAlloy: false),
+            "Ordinary metal must not receive forced heated-material visuals.");
+        Assert(RepairGlowPolicy.ShouldMaintainHeatedMaterialTemperature(isClient: true, isRepairAlloy: true),
+            "Repair Alloy must maintain its heated-material visual after setup on clients.");
+        Assert(!RepairGlowPolicy.ShouldMaintainHeatedMaterialTemperature(isClient: false, isRepairAlloy: true),
+            "Dedicated servers must not maintain heated-material visuals.");
+        Assert(!RepairGlowPolicy.ShouldMaintainHeatedMaterialTemperature(isClient: true, isRepairAlloy: false),
+            "Ordinary metal must not maintain heated-material visuals.");
+        AssertClose(RepairGlowPolicy.SelectFullyHeatedTemperatureValue(new[] { 0f, 0.25f, 1f }), 1f,
+            "Repair Alloy must use the final value from the game's heat curve.");
+        Assert(RepairGlowPolicy.ShouldInspectHeatComponents(isClient: true, isRepairAlloy: true),
+            "Repair Alloy heat diagnostics must run on clients.");
+        Assert(!RepairGlowPolicy.ShouldInspectHeatComponents(isClient: false, isRepairAlloy: true),
+            "Repair Alloy heat diagnostics must not run on dedicated servers.");
+        Assert(!RepairGlowPolicy.ShouldInspectHeatComponents(isClient: true, isRepairAlloy: false),
+            "Ordinary materials must not produce Repair Alloy heat diagnostics.");
+        Assert(RepairAlloyAppearancePolicy.IsExpectedTemplateMaterial("Iron"),
+            "Repair Alloy must clone the Iron material appearance.");
+        Assert(!RepairAlloyAppearancePolicy.IsExpectedTemplateMaterial("Silver"),
+            "Repair Alloy must no longer clone the Silver material appearance.");
+        Assert(RepairAlloyAppearancePolicy.ShouldTintShaderProperty("_ColorA"),
+            "Repair Alloy must tint the Custom/Metal primary colour.");
+        Assert(RepairAlloyAppearancePolicy.ShouldTintShaderProperty("_Color"),
+            "Repair Alloy must tint the SimpleStandard primary colour.");
+        Assert(!RepairAlloyAppearancePolicy.ShouldTintShaderProperty("_MainTex"),
+            "Repair Alloy must preserve Iron's texture maps.");
+        Assert(RepairAlloyAppearancePolicy.ShouldSetEmissionShaderProperty("_Emission"),
+            "Repair Alloy must set Custom/Metal emission.");
+        Assert(RepairAlloyAppearancePolicy.ShouldSetEmissionShaderProperty("_EmissionColor"),
+            "Repair Alloy must set SimpleStandard emission.");
+        Assert(RepairAlloyAppearancePolicy.ShouldInspectSurfaceShaderProperty("_MetallicStrength"),
+            "Repair Alloy diagnostics must inspect the custom-metal metallic-strength property.");
+        Assert(RepairAlloyAppearancePolicy.ShouldInspectSurfaceShaderProperty("_Glossiness"),
+            "Repair Alloy diagnostics must inspect the glossiness property.");
+        Assert(!RepairAlloyAppearancePolicy.ShouldInspectSurfaceShaderProperty("_Color"),
+            "Repair Alloy diagnostics must only inspect the requested surface properties.");
+        AssertClose(RepairAlloyAppearancePolicy.IceTintRed, 0f,
+            "Repair Alloy ice tint red must be 0.");
+        AssertClose(RepairAlloyAppearancePolicy.IceTintGreen, 210f / 255f,
+            "Repair Alloy ice tint green must be 210/255.");
+        AssertClose(RepairAlloyAppearancePolicy.IceTintBlue, 1f,
+            "Repair Alloy ice tint blue must be 255/255.");
+        AssertClose(RepairAlloyAppearancePolicy.IceTintAlpha, 0.8f,
+            "Repair Alloy ice tint alpha must be 0.8.");
+        AssertClose(RepairAlloyAppearancePolicy.IceEmissionRed, 185f / 255f,
+            "Repair Alloy emission red must be 185/255.");
+        AssertClose(RepairAlloyAppearancePolicy.IceEmissionGreen, 1f,
+            "Repair Alloy emission green must be 255/255.");
+        AssertClose(RepairAlloyAppearancePolicy.IceEmissionBlue, 254f / 255f,
+            "Repair Alloy emission blue must be 254/255.");
         Assert(ForgeMultiplierPolicy.ShouldReport(1f),
             "Positive forge multipliers must be included in the startup report.");
         Assert(!ForgeMultiplierPolicy.ShouldReport(0f),
@@ -91,5 +135,10 @@ internal static class Program
             out var profile), message);
         Assert(Math.Abs(profile.RepairFraction - repairFraction) < 0.0001f, message);
         Assert(Math.Abs(profile.HammerDamageFraction - hammerDamageFraction) < 0.0001f, message);
+    }
+
+    private static void AssertClose(float actual, float expected, string message)
+    {
+        Assert(Math.Abs(actual - expected) < 0.0001f, message);
     }
 }

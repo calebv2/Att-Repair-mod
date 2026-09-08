@@ -9,6 +9,7 @@
   <ItemGroup>
     <Compile Include="Program.cs" />
     <Compile Include="../RepairAlloyPolicy.cs" Link="RepairAlloyPolicy.cs" />
+    <Compile Include="../RepairAlloyAppearancePolicy.cs" Link="RepairAlloyAppearancePolicy.cs" />
     <Compile Include="../MaterialRepairProfile.cs" Link="MaterialRepairProfile.cs" />
     <Compile Include="../RepairGlowPolicy.cs" Link="RepairGlowPolicy.cs" />
     <Compile Include="../ForgeMultiplierPolicy.cs" Link="ForgeMultiplierPolicy.cs" />

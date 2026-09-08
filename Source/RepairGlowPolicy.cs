@@ -2,14 +2,37 @@ namespace RepairHammer;
 
 public static class RepairGlowPolicy
 {
-    public const float HaloParticleLifetimeSeconds = 0.7f;
-    public const float HaloParticleSize = 0.045f;
-    public const float HaloParticlePulseMinimumScale = 0.35f;
-    public const float HaloParticlePulseMaximumScale = 1f;
-    public const string HaloShaderName = "Legacy Shaders/Particles/Additive";
-    public const int HaloTextureResolution = 64;
-
     public static bool ShouldApply(bool isClient, bool isRepairAlloy)
+    {
+        return isClient && isRepairAlloy;
+    }
+
+    public static bool ShouldCreateParticleAura()
+    {
+        return false;
+    }
+
+    public static bool ShouldForceHeatedMaterialTemperature(bool isClient, bool isRepairAlloy)
+    {
+        return isClient && isRepairAlloy;
+    }
+
+    public static bool ShouldMaintainHeatedMaterialTemperature(bool isClient, bool isRepairAlloy)
+    {
+        return isClient && isRepairAlloy;
+    }
+
+    public static float SelectFullyHeatedTemperatureValue(float[] curveValues)
+    {
+        if (curveValues == null || curveValues.Length == 0)
+        {
+            throw new System.ArgumentException("The heat curve must contain at least one value.", nameof(curveValues));
+        }
+
+        return curveValues[curveValues.Length - 1];
+    }
+
+    public static bool ShouldInspectHeatComponents(bool isClient, bool isRepairAlloy)
     {
         return isClient && isRepairAlloy;
     }

@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using Alta;
 using HarmonyLib;
@@ -10,9 +12,7 @@ namespace RepairHammer;
 internal static class RepairHammerGlowPatch
 {
     private const string GlowObjectName = "Repair Hammer Glow";
-    private const float EmissionIntensity = 2f;
-
-    private static Texture2D? haloTexture;
+    private static readonly HashSet<int> InspectedHeatComponentParts = new();
 
     private static readonly FieldInfo RenderersField = typeof(PhysicalMaterialPart)
         .GetField("renderers", BindingFlags.Instance | BindingFlags.NonPublic)
@@ -31,13 +31,18 @@ internal static class RepairHammerGlowPatch
                 + ", registeredMaterial=" + (repairAlloy == null ? "<null>" : repairAlloy.Hash.ToString())
                 + ", repairAlloy=" + isRepairAlloy + ".");
         }
+        if (RepairGlowPolicy.ShouldInspectHeatComponents(!Application.isBatchMode, isRepairAlloy))
+        {
+            LogHeatComponentInventory(__instance);
+        }
+        RepairHammerHeatedMaterialPatch.EnsurePersistentController(__instance, isRepairAlloy);
+        RemoveExistingGlowAura(__instance);
         if (!RepairGlowPolicy.ShouldApply(!Application.isBatchMode, isRepairAlloy))
         {
             return;
         }
 
         ApplyWhiteEmission(__instance);
-        EnsureGlowAura(__instance);
     }
 
     private static void ApplyWhiteEmission(PhysicalMaterialPart materialPart)
@@ -63,7 +68,11 @@ internal static class RepairHammerGlowPatch
             }
 
             material.EnableKeyword("_EMISSION");
-            material.SetColor("_EmissionColor", Color.white * EmissionIntensity);
+            material.SetColor("_EmissionColor", new Color(
+                RepairAlloyAppearancePolicy.IceEmissionRed,
+                RepairAlloyAppearancePolicy.IceEmissionGreen,
+                RepairAlloyAppearancePolicy.IceEmissionBlue,
+                1f));
             emissiveRendererCount++;
         }
 
@@ -71,104 +80,34 @@ internal static class RepairHammerGlowPatch
             + ", emissiveRenderers=" + emissiveRendererCount + ".");
     }
 
-    private static void EnsureGlowAura(PhysicalMaterialPart materialPart)
+    private static void LogHeatComponentInventory(PhysicalMaterialPart materialPart)
     {
-        var existing = materialPart.transform.Find(GlowObjectName);
-        var glowObject = existing == null ? new GameObject(GlowObjectName) : existing.gameObject;
-        if (existing == null)
+        if (!InspectedHeatComponentParts.Add(materialPart.GetInstanceID()))
         {
-            glowObject.transform.SetParent(materialPart.transform, false);
-        }
-
-        var glowLight = glowObject.GetComponent<Light>() ?? glowObject.AddComponent<Light>();
-        glowLight.enabled = false;
-
-        var particles = glowObject.GetComponent<ParticleSystem>() ?? glowObject.AddComponent<ParticleSystem>();
-        var main = particles.main;
-        main.loop = true;
-        main.startLifetime = RepairGlowPolicy.HaloParticleLifetimeSeconds;
-        main.startSpeed = 0.01f;
-        main.startSize = RepairGlowPolicy.HaloParticleSize;
-        main.startColor = new Color(1f, 1f, 1f, 0.9f);
-        main.maxParticles = 24;
-        main.simulationSpace = ParticleSystemSimulationSpace.Local;
-
-        var emission = particles.emission;
-        emission.rateOverTime = 12f;
-
-        var shape = particles.shape;
-        shape.shapeType = ParticleSystemShapeType.Sphere;
-        shape.radius = 0.045f;
-
-        var particleRenderer = particles.GetComponent<ParticleSystemRenderer>();
-        var haloShader = Shader.Find(RepairGlowPolicy.HaloShaderName);
-        if (particleRenderer == null || haloShader == null)
-        {
-            particles.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
-            Core.Logger.Warning("Repair Alloy halo was not applied: the game's additive particle shader is unavailable.");
             return;
         }
 
-        var haloMaterial = new Material(haloShader)
-        {
-            color = Color.white,
-            mainTexture = GetHaloTexture()
-        };
-        if (haloMaterial.HasProperty("_TintColor"))
-        {
-            haloMaterial.SetColor("_TintColor", Color.white);
-        }
-        particleRenderer.material = haloMaterial;
-        particleRenderer.renderMode = ParticleSystemRenderMode.Billboard;
-
-        var sizeOverLifetime = particles.sizeOverLifetime;
-        sizeOverLifetime.enabled = true;
-        sizeOverLifetime.size = new ParticleSystem.MinMaxCurve(
-            1f,
-            new AnimationCurve(
-                new Keyframe(0f, RepairGlowPolicy.HaloParticlePulseMinimumScale),
-                new Keyframe(0.5f, RepairGlowPolicy.HaloParticlePulseMaximumScale),
-                new Keyframe(1f, RepairGlowPolicy.HaloParticlePulseMinimumScale)));
-
-        if (!particles.isPlaying)
-        {
-            particles.Play();
-        }
-
-        Core.Logger.Msg("Repair Alloy white particle aura applied to hammer head.");
+        var self = materialPart.gameObject;
+        var selfComponents = self.GetComponents<Component>();
+        var parentComponents = materialPart.GetComponentsInParent<Component>(includeInactive: true)
+            .Where(component => component != null && component.gameObject != self);
+        var childComponents = materialPart.GetComponentsInChildren<Component>(includeInactive: true)
+            .Where(component => component != null && component.gameObject != self);
+        Core.Logger.Msg("Repair Alloy heat-component inventory: self=["
+            + string.Join(", ", selfComponents.Where(component => component != null).Select(component => component.GetType().FullName))
+            + "], parents=["
+            + string.Join(", ", parentComponents.Select(component => component.GetType().FullName))
+            + "], children=["
+            + string.Join(", ", childComponents.Select(component => component.GetType().FullName))
+            + "].");
     }
 
-    private static Texture2D GetHaloTexture()
+    private static void RemoveExistingGlowAura(PhysicalMaterialPart materialPart)
     {
-        if (haloTexture != null)
+        var existing = materialPart.transform.Find(GlowObjectName);
+        if (existing != null)
         {
-            return haloTexture;
+            UnityEngine.Object.Destroy(existing.gameObject);
         }
-
-        var resolution = RepairGlowPolicy.HaloTextureResolution;
-        var texture = new Texture2D(resolution, resolution, TextureFormat.RGBA32, false)
-        {
-            name = "Repair Hammer Soft Halo",
-            wrapMode = TextureWrapMode.Clamp,
-            filterMode = FilterMode.Bilinear
-        };
-        var pixels = new Color[resolution * resolution];
-        for (var y = 0; y < resolution; y++)
-        {
-            for (var x = 0; x < resolution; x++)
-            {
-                var horizontal = ((x + 0.5f) / resolution * 2f) - 1f;
-                var vertical = ((y + 0.5f) / resolution * 2f) - 1f;
-                var distance = Mathf.Sqrt((horizontal * horizontal) + (vertical * vertical));
-                var alpha = Mathf.Clamp01(1f - distance);
-                alpha *= alpha;
-                pixels[(y * resolution) + x] = new Color(1f, 1f, 1f, alpha);
-            }
-        }
-
-        texture.SetPixels(pixels);
-        texture.Apply();
-        haloTexture = texture;
-        return haloTexture;
     }
 }
