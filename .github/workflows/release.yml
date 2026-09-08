@@ -1,0 +1,34 @@
+name: Publish Repair Hammer release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "Release tag to create (for example, v0.1.0)"
+        required: true
+        default: "v0.1.0"
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      RELEASE_TAG: ${{ inputs.release_tag || github.ref_name }}
+    steps:
+      - name: Check out release source
+        uses: actions/checkout@v4
+
+      - name: Create release and attach RepairHammer.dll
+        run: |
+          gh release create "$RELEASE_TAG" "Repair Hammer Build/RepairHammer.dll" \
+            --target "$GITHUB_SHA" \
+            --title "Repair Hammer $RELEASE_TAG" \
+            --generate-notes
