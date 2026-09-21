@@ -20,7 +20,7 @@ At server startup, the mod reads each ingot material that the game's forge mould
 
 Current values reported by default:
 
-| Target metal | Internal material | Repair | Repair-hammer damage |
+| Target metal | Repair | Repair-hammer damage |
 | --- | ---: | ---: |
 | Copper | 50% | 2% |
 | Gold | 40% | 7% |
