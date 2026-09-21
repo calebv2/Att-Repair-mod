@@ -25,10 +25,10 @@ Current values reported by default:
 | Copper | 50% | 2% |
 | Gold | 40% | 7% |
 | Iron | 33% | 11% |
-| Orchi | 33% | 11% |
+| Viridium | 33% | 11% |
 | Red Iron | 33% | 11% |
-| Carsi | 26% | 14% |
-| Viridium | 26% | 14% |
+| Palladium | 26% | 14% |
+| Electrum | 26% | 14% |
 | Silver | 24% | 15% |
 | Mythril | 8% | 23% |
 | Valyan | 5% | 25% |
