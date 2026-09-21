@@ -21,17 +21,17 @@ At server startup, the mod reads each ingot material that the game's forge mould
 Current values reported by default:
 
 | Target metal | Internal material | Repair | Repair-hammer damage |
-| --- | --- | ---: | ---: |
-| Copper | Copper | 50% | 2% |
-| Gold | Gold | 40% | 7% |
-| Iron | Iron | 33% | 11% |
-| Orchi | Orchi Alloy | 33% | 11% |
-| Red Iron | Red Iron Alloy | 33% | 11% |
-| Carsi | Carsi Alloy | 26% | 14% |
-| White Gold | White Gold Alloy | 26% | 14% |
-| Silver | Silver | 24% | 15% |
-| Mythril | Mythril | 8% | 23% |
-| Evinon Steel | Evinon Steel Alloy | 5% | 25% |
+| --- | ---: | ---: |
+| Copper | 50% | 2% |
+| Gold | 40% | 7% |
+| Iron | 33% | 11% |
+| Orchi | 33% | 11% |
+| Red Iron | 33% | 11% |
+| Carsi | 26% | 14% |
+| Viridium | 26% | 14% |
+| Silver | 24% | 15% |
+| Mythril | 8% | 23% |
+| Valyan | 5% | 25% |
 
 ## Installation
 
